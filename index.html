@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Stock Market Predictor</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Make a Prediction</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="company" class="form-label">Company</label>
+                            <select class="form-select" id="company" name="company" required>
+                                {% for ticker, name in companies.items() %}
+                                    <option value="{{ ticker }}" {% if selected_company == ticker %}selected{% endif %}>{{ name }} ({{ ticker }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="prediction_date" class="form-label">Prediction Date (2024-01-01 to 2025-06-30)</label>
+                            <input type="date" class="form-control" id="prediction_date" name="prediction_date" 
+                                   min="2024-01-01" max="2025-06-30" 
+                                   value="{% if prediction_date %}{{ prediction_date }}{% else %}2024-06-15{% endif %}" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Predict</button>
+                </form>
+            </div>
+        </div>
+
+        {% if predicted_price %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Prediction Results</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>{{ companies[selected_company] }} ({{ selected_company }})</h4>
+                        <p><strong>Prediction Date:</strong> {{ prediction_date }}</p>
+                        <p><strong>Predicted Price:</strong> ${{ "%.2f"|format(predicted_price) }}</p>
+                        {% if actual_price %}
+                            <p><strong>Actual Price:</strong> ${{ "%.2f"|format(actual_price) }}</p>
+                            {% set error = (actual_price - predicted_price)|abs %}
+                            <p><strong>Prediction Error:</strong> ${{ "%.2f"|format(error) }} ({{ "%.2f"|format(error/predicted_price*100) }}%)</p>
+                        {% else %}
+                            <p><strong>Note:</strong> No actual data available for this future date</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <img src="data:image/png;base64,{{ plot_url }}" alt="Stock Prediction Chart" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
